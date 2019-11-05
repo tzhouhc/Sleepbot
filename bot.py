@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import argparse
+import cachetools
 import csv
 import discord
+import random
 import requests
 from io import StringIO
 
@@ -11,6 +13,7 @@ from io import StringIO
 # on the command line
 REPLAY_VALUE_EASTER_HEN_URL = "https://docs.google.com/spreadsheets/d/1cCUBJNXRoCaOh6uE4pDYW9mZ_6sFtSG0E2YJZCGwvPQ/export?format=csv"
 EASTER_HEN = []
+SIBYL_CACHE = cachetools.TTLCache(64, ttl=100)
 
 
 def parse_args():
@@ -44,6 +47,43 @@ def operate_on_strings(operator: str, sub_operand: str, operand: str) -> bool:
         return False
 
 
+def is_criminally_asymptotic(target: str) -> bool:
+    return target.strip().lower() in [
+        "tzhou",
+        "syra",
+        "syraleaf",
+        "replay",
+        "replayvalue",
+        "replay value",
+        "tz",
+        "rep",
+        "marv",
+        "marvin",
+    ]
+
+
+def dominator(target: str) -> str:
+    global SIBYL_CACHE
+    if target in SIBYL_CACHE:
+        coefficient = SIBYL_CACHE.get(target)
+    else:
+        coefficient = 0 if is_criminally_asymptotic(target) else random.randint(0, 499)
+        SIBYL_CACHE[target] = coefficient
+    response = f"Target has a crime coefficent of {coefficient}. "
+    if coefficient == 0:
+        response += "Target is literally a fucking saint."
+    elif coefficient < 100:
+        response += "Not a target for enforcement action, the trigger will be "
+        "locked."
+    elif coefficient < 300:
+        response += "They're a target for enforcement action. Enforcement Mode"
+        " is Paralyzer. The safety will be released."
+    else:
+        response += "They're a target for enforcement action. Enforcement Mode"
+        "is Lethal Eliminator. Aim Carefully and Eliminate the Target."
+    return response
+
+
 @client.event
 async def on_ready():
     print(f"We have logged in as {client.user}")
@@ -55,15 +95,23 @@ async def on_message(message):
     if message.author == client.user:
         return
     # TODO: add other toy methods
+    elif message.content.startswith(".Dominator"):
+        target = " ".join(message.content.split(" ")[1:])
+        await message.channel.send(dominator(target))
     elif message.content == "!refresh":
         EASTER_HEN = get_rules_from_google_sheet(REPLAY_VALUE_EASTER_HEN_URL)
     else:
         # currently ignore 'ignore_quotation'
-        for keyword, operator, response, disabled in EASTER_HEN:
+        for line in EASTER_HEN:
+            keyword, operator, response, disabled = map(
+                lambda x: x.strip().lower(), line
+            )
             if disabled.strip() == "TRUE" or not response:
                 continue
             if operate_on_strings(
-                operator, keyword.strip().lower(), message.content.strip().lower()
+                operator.strip(),
+                keyword.strip().lower(),
+                message.content.strip().lower(),
             ):
                 await message.channel.send(response)
 
