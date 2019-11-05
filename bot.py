@@ -2,16 +2,18 @@
 import argparse
 import cachetools
 import discord
-import random
 
 from utils.data import get_config_from_json_file, EasterHen
-from utils.sibyl import is_criminally_asymptotic
+from utils.sibyl import calculate_coefficient, dominator_decision
 from utils.response import operate_on_strings
+from utils.misc import who_is
 
 
 # declare empty hen and populate later
 EASTER_HEN = None
 SIBYL_CACHE = cachetools.TTLCache(64, ttl=100)
+DOMINATOR_STATUS = 0
+DOMINATOR_LAST_TARGET = None
 
 
 def parse_args() -> argparse.Namespace:
@@ -31,23 +33,16 @@ client = discord.Client()
 
 def dominator(target: str) -> str:
     global SIBYL_CACHE
+    global DOMINATOR_STATUS
+    global DOMINATOR_LAST_TARGET
     if target in SIBYL_CACHE:
         coefficient = SIBYL_CACHE.get(target)
     else:
-        coefficient = 0 if is_criminally_asymptotic(target) else random.randint(0, 499)
+        coefficient = calculate_coefficient(target)
         SIBYL_CACHE[target] = coefficient
-    response = f"Target has a crime coefficent of {coefficient}. "
-    if coefficient == 0:
-        response += "Target is literally a fucking saint."
-    elif coefficient < 100:
-        response += "Not a target for enforcement action, the trigger will be "
-        "locked."
-    elif coefficient < 300:
-        response += "They're a target for enforcement action. Enforcement Mode"
-        " is Paralyzer. The safety will be released."
-    else:
-        response += "They're a target for enforcement action. Enforcement Mode"
-        "is Lethal Eliminator. Aim Carefully and Eliminate the Target."
+    lethality, response = dominator_decision(target, coefficient)
+    DOMINATOR_STATUS = lethality
+    DOMINATOR_LAST_TARGET = target
     return response
 
 
@@ -74,12 +69,36 @@ async def on_ready() -> None:
 @client.event
 async def on_message(message: discord.Message) -> None:
     global EASTER_HEN
+    global DOMINATOR_LAST_TARGET
+    global DOMINATOR_STATUS
     if message.author == client.user:
         return
     # TODO: add other toy methods
     elif message.content.startswith(".Dominator "):
         target = " ".join(message.content.split(" ")[1:])
-        await message.channel.send(dominator(target))
+        target_user = who_is(target, message)
+        if not target_user:
+            await message.channel.send(
+                "Zero or multiple targets identified. Please select a single target."
+            )
+            return
+        await message.channel.send(dominator(target_user))
+    elif message.content.startswith(".DominatorFire"):
+        if not DOMINATOR_LAST_TARGET or DOMINATOR_STATUS == 0:
+            await message.channel.send("Dominator is locked.")
+        elif DOMINATOR_STATUS == 1:
+            await message.channel.send(
+                f"> {DOMINATOR_LAST_TARGET} <: https://gfycat.com/scarcejoyousfinwhale"
+            )
+            del SIBYL_CACHE[DOMINATOR_LAST_TARGET]
+        else:
+            await message.channel.send(
+                f"> {DOMINATOR_LAST_TARGET}< : https://gfycat.com/regulartarthorseshoecrab"
+            )
+            del SIBYL_CACHE[DOMINATOR_LAST_TARGET]
+        DOMINATOR_LAST_TARGET = None
+        DOMINATOR_STATUS = 0
+
     elif message.content == "!refresh":
         EASTER_HEN.refresh()
     else:
