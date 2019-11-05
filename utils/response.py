@@ -1,6 +1,11 @@
+import re
+
+
 def operate_on_strings(operator: str, sub_operand: str, operand: str) -> bool:
     if operator == "match":
         return sub_operand == operand
+    elif operator == "contains_word":
+        return re.search(fr"\b{sub_operand}\b", operand) is not None
     elif operator == "prefix":
         return operand.startswith(sub_operand)
     elif operator == "suffix":

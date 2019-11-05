@@ -99,6 +99,8 @@ async def on_message(message: discord.Message) -> None:
         DOMINATOR_LAST_TARGET = None
         DOMINATOR_STATUS = 0
 
+    elif message.content == ".unicode":
+        await message.channel.send("苹果")
     elif message.content == "!refresh":
         EASTER_HEN.refresh()
     else:

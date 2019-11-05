@@ -9,7 +9,7 @@ def is_separate_jurisdiction(target: str) -> bool:
     # can sibyl judge itself? Yes, yes she can.
     return target.strip().lower() in [
         "syraleaf!",
-        "replayvalue",
+        "replay value",
         "tzhou",
     ]
 
@@ -18,7 +18,7 @@ def is_criminally_asymptotic(target: str) -> bool:
     return target.strip().lower() in [
         "tzhou",
         "syraleaf!",
-        "replayvalue",
+        "replay value",
         # due to someone's misspelling
         "sibyl",
         "sybil",
@@ -69,6 +69,6 @@ def dominator_decision(target: str, coefficient: int) -> (int, str):
     else:
         response += (
             "They're a target for enforcement action. Enforcement Mode"
-            "is Lethal Eliminator. Aim Carefully and Eliminate the Target."
+            " is Lethal Eliminator. Aim Carefully and Eliminate the Target."
         )
         return 2, response
