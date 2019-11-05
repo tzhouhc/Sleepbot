@@ -49,16 +49,17 @@ def dominator(target: str) -> str:
 # Top level function to handle the base case of messages
 # Tries to find *some* keyword in the message to respond to according to the
 # easter-egg table
-def base_response(message_text: str, hen: EasterHen) -> str:
-    for keyword, operator, response, disabled in hen.get_eggs():
+def base_response(message_text: str, hen: EasterHen) -> list:
+    for keyword, operator, response, disabled, react in hen.get_eggs():
         keyword = keyword.strip().lower()
         operator = operator.strip().lower()
         disabled = disabled.strip().lower()
+        reaction = react.strip().lower() == "true"
         if disabled == "true" or not response:
             continue
         if operate_on_strings(operator, keyword, message_text):
-            return response
-    return ""
+            return reaction, response
+    return False, ""
 
 
 @client.event
@@ -99,14 +100,15 @@ async def on_message(message: discord.Message) -> None:
         DOMINATOR_LAST_TARGET = None
         DOMINATOR_STATUS = 0
 
-    elif message.content == ".unicode":
-        await message.channel.send("苹果")
     elif message.content == "!refresh":
         EASTER_HEN.refresh()
     else:
-        response = base_response(message.content.strip().lower(), hen=EASTER_HEN)
+        react, response = base_response(message.content.strip().lower(), hen=EASTER_HEN)
         if response:
-            await message.channel.send(response)
+            if react:
+                await message.add_reaction(response)
+            else:
+                await message.channel.send(response)
 
 
 def main() -> None:
