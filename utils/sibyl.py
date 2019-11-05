@@ -5,19 +5,23 @@ import random
 # that goes around and shoots stuff.
 
 
+def is_separate_jurisdiction(target: str) -> bool:
+    # can sibyl judge itself? Yes, yes she can.
+    return target.strip().lower() in [
+        "syraleaf!",
+        "replayvalue",
+        "tzhou",
+    ]
+
+
 def is_criminally_asymptotic(target: str) -> bool:
     return target.strip().lower() in [
         "tzhou",
-        "sibyl",
-        "syra",
         "syraleaf!",
-        "replay",
         "replayvalue",
-        "replay value",
-        "tz",
-        "rep",
-        "marv",
-        "marvin",
+        # due to someone's misspelling
+        "sibyl",
+        "sybil",
     ]
 
 
@@ -40,6 +44,9 @@ def calculate_coefficient(target) -> int:
 
 # returns a number for lethality, and a string for announcement
 def dominator_decision(target: str, coefficient: int) -> (int, str):
+    if is_separate_jurisdiction(target):
+        return 0, f"Target '{target}' is not under current jurisdiction."
+
     response = f"Target '{target}' has a crime coefficent of {coefficient}. "
     if coefficient == 0:
         response += "Target is literally a fucking saint."

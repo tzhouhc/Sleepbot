@@ -88,12 +88,12 @@ async def on_message(message: discord.Message) -> None:
             await message.channel.send("Dominator is locked.")
         elif DOMINATOR_STATUS == 1:
             await message.channel.send(
-                f"> {DOMINATOR_LAST_TARGET} <: https://gfycat.com/scarcejoyousfinwhale"
+                f"\\> {DOMINATOR_LAST_TARGET} <: https://gfycat.com/scarcejoyousfinwhale"
             )
             del SIBYL_CACHE[DOMINATOR_LAST_TARGET]
         else:
             await message.channel.send(
-                f"> {DOMINATOR_LAST_TARGET}< : https://gfycat.com/regulartarthorseshoecrab"
+                f"\\> {DOMINATOR_LAST_TARGET}< : https://gfycat.com/regulartarthorseshoecrab"
             )
             del SIBYL_CACHE[DOMINATOR_LAST_TARGET]
         DOMINATOR_LAST_TARGET = None
