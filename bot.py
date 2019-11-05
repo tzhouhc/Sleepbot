@@ -9,10 +9,18 @@ from io import StringIO
 
 # TODO: full PEP484 compliance
 
+
+def get_rules_from_google_sheet(url) -> list:
+    res = requests.get(url=url)
+    reader = csv.reader(StringIO(res.text), delimiter=",", quotechar='"')
+    next(reader)  # skip header
+    return list(reader)
+
+
 # TODO: make this also a parameter to read from a local config file or pass in
 # on the command line
 REPLAY_VALUE_EASTER_HEN_URL = "https://docs.google.com/spreadsheets/d/1cCUBJNXRoCaOh6uE4pDYW9mZ_6sFtSG0E2YJZCGwvPQ/export?format=csv"
-EASTER_HEN = []
+EASTER_HEN = get_rules_from_google_sheet(REPLAY_VALUE_EASTER_HEN_URL)
 SIBYL_CACHE = cachetools.TTLCache(64, ttl=100)
 
 
@@ -33,13 +41,13 @@ client = discord.Client()
 
 
 def operate_on_strings(operator: str, sub_operand: str, operand: str) -> bool:
-    if operator == "MATCH":
+    if operator == "match":
         return sub_operand == operand
-    elif operator == "PREFIX":
+    elif operator == "prefix":
         return operand.startswith(sub_operand)
-    elif operator == "SUFFIX":
+    elif operator == "suffix":
         return operand.endswith(sub_operand)
-    elif operator == "CONTAINS":
+    elif operator == "contains":
         return sub_operand in operand
     else:  # operator not recognized
         # TODO: do actual logging instead of stdout print
@@ -102,25 +110,14 @@ async def on_message(message):
         EASTER_HEN = get_rules_from_google_sheet(REPLAY_VALUE_EASTER_HEN_URL)
     else:
         # currently ignore 'ignore_quotation'
-        for line in EASTER_HEN:
-            keyword, operator, response, disabled = map(
-                lambda x: x.strip().lower(), line
-            )
-            if disabled.strip() == "TRUE" or not response:
+        for keyword, operator, response, disabled in EASTER_HEN:
+            keyword = keyword.strip().lower()
+            operator = operator.strip().lower()
+            disabled = disabled.strip().lower()
+            if disabled == "true" or not response:
                 continue
-            if operate_on_strings(
-                operator.strip(),
-                keyword.strip().lower(),
-                message.content.strip().lower(),
-            ):
+            if operate_on_strings(operator, keyword, message.content.strip().lower()):
                 await message.channel.send(response)
-
-
-def get_rules_from_google_sheet(url) -> list:
-    res = requests.get(url=url)
-    reader = csv.reader(StringIO(res.text), delimiter=",", quotechar='"')
-    next(reader)  # skip header
-    return list(reader)
 
 
 def get_token_from_file(fileio):
