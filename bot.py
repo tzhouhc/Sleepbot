@@ -1,73 +1,32 @@
 #!/usr/bin/env python3
 import argparse
 import cachetools
-import csv
 import discord
 import random
-import requests
-from io import StringIO
 
-# TODO: full PEP484 compliance
-
-
-def get_rules_from_google_sheet(url) -> list:
-    res = requests.get(url=url)
-    reader = csv.reader(StringIO(res.text), delimiter=",", quotechar='"')
-    next(reader)  # skip header
-    return list(reader)
+from utils.data import get_config_from_json_file, EasterHen
+from utils.sibyl import is_criminally_asymptotic
+from utils.response import operate_on_strings
 
 
-# TODO: make this also a parameter to read from a local config file or pass in
-# on the command line
-REPLAY_VALUE_EASTER_HEN_URL = "https://docs.google.com/spreadsheets/d/1cCUBJNXRoCaOh6uE4pDYW9mZ_6sFtSG0E2YJZCGwvPQ/export?format=csv"
-EASTER_HEN = get_rules_from_google_sheet(REPLAY_VALUE_EASTER_HEN_URL)
+# declare empty hen and populate later
+EASTER_HEN = None
 SIBYL_CACHE = cachetools.TTLCache(64, ttl=100)
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Start the sleep monitor bot.")
-    token_parser_group = parser.add_mutually_exclusive_group(required=True)
-
-    token_parser_group.add_argument("--token", type=str, help="The token for the bot.")
-    token_parser_group.add_argument(
-        "--token-file",
+    parser.add_argument(
+        "-c",
+        "--config-json",
         type=argparse.FileType("r"),
-        help="The file containing the token for the bot.",
+        help="The json-file containing the token for the bot. It needs to be "
+        "an object with the fields 'token' and 'easter_hen_url'.",
     )
     return parser.parse_args()
 
 
 client = discord.Client()
-
-
-def operate_on_strings(operator: str, sub_operand: str, operand: str) -> bool:
-    if operator == "match":
-        return sub_operand == operand
-    elif operator == "prefix":
-        return operand.startswith(sub_operand)
-    elif operator == "suffix":
-        return operand.endswith(sub_operand)
-    elif operator == "contains":
-        return sub_operand in operand
-    else:  # operator not recognized
-        # TODO: do actual logging instead of stdout print
-        print(f"operator '{operator}' not recognized.")
-        return False
-
-
-def is_criminally_asymptotic(target: str) -> bool:
-    return target.strip().lower() in [
-        "tzhou",
-        "syra",
-        "syraleaf",
-        "replay",
-        "replayvalue",
-        "replay value",
-        "tz",
-        "rep",
-        "marv",
-        "marvin",
-    ]
 
 
 def dominator(target: str) -> str:
@@ -92,43 +51,49 @@ def dominator(target: str) -> str:
     return response
 
 
+# Top level function to handle the base case of messages
+# Tries to find *some* keyword in the message to respond to according to the
+# easter-egg table
+def base_response(message_text: str, hen: EasterHen) -> str:
+    for keyword, operator, response, disabled in hen.get_eggs():
+        keyword = keyword.strip().lower()
+        operator = operator.strip().lower()
+        disabled = disabled.strip().lower()
+        if disabled == "true" or not response:
+            continue
+        if operate_on_strings(operator, keyword, message_text):
+            return response
+    return ""
+
+
 @client.event
-async def on_ready():
+async def on_ready() -> None:
     print(f"We have logged in as {client.user}")
 
 
 @client.event
-async def on_message(message):
+async def on_message(message: discord.Message) -> None:
     global EASTER_HEN
     if message.author == client.user:
         return
     # TODO: add other toy methods
-    elif message.content.startswith(".Dominator"):
+    elif message.content.startswith(".Dominator "):
         target = " ".join(message.content.split(" ")[1:])
         await message.channel.send(dominator(target))
     elif message.content == "!refresh":
-        EASTER_HEN = get_rules_from_google_sheet(REPLAY_VALUE_EASTER_HEN_URL)
+        EASTER_HEN.refresh()
     else:
-        # currently ignore 'ignore_quotation'
-        for keyword, operator, response, disabled in EASTER_HEN:
-            keyword = keyword.strip().lower()
-            operator = operator.strip().lower()
-            disabled = disabled.strip().lower()
-            if disabled == "true" or not response:
-                continue
-            if operate_on_strings(operator, keyword, message.content.strip().lower()):
-                await message.channel.send(response)
+        response = base_response(message.content.strip().lower(), hen=EASTER_HEN)
+        if response:
+            await message.channel.send(response)
 
 
-def get_token_from_file(fileio):
-    return fileio.read().rstrip()
-
-
-def main():
+def main() -> None:
+    global EASTER_HEN
     args = parse_args()
-    if not args.token:
-        args.token = get_token_from_file(args.token_file)
-    client.run(args.token)
+    config_data = get_config_from_json_file(args.config_json)
+    EASTER_HEN = EasterHen(config_data.get("easter_hen_url"))
+    client.run(config_data.get("token"))
 
 
 if __name__ == "__main__":
