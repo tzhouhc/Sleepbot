@@ -106,7 +106,8 @@ async def on_message(message: discord.Message) -> None:
         react, response = base_response(message.content.strip().lower(), hen=EASTER_HEN)
         if response:
             if react:
-                await message.add_reaction(response)
+                for emote in response.split("/"):
+                    await message.add_reaction(emote)
             else:
                 await message.channel.send(response)
 
