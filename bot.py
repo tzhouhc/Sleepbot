@@ -9,12 +9,58 @@ from utils.misc import who_is
 from utils.admin import ADMINS, is_privileged
 
 
-# declare empty hen and populate later
-EASTER_HEN = None
-SIBYL = None
-# SIBYL_CACHE = cachetools.TTLCache(64, ttl=100)
-# DOMINATOR_STATUS = 0
-# DOMINATOR_LAST_TARGET = None
+class SleepbotClient(discord.Client):
+    def __init__(self) -> None:
+        super().__init__()
+        self.easter_hen = None
+        self.sibyl = None
+
+    def set_easter_hen(self, hen: EasterHen) -> None:
+        self.easter_hen = hen
+
+    def set_sibyl(self, sibyl: SibylSystem) -> None:
+        self.sibyl = sibyl
+
+    async def on_ready(self) -> None:
+        print(f"We have logged in as {self.user}")
+
+    async def on_message(self, message: discord.Message) -> None:
+        if message.author == self.user:
+            return
+        # TODO: add other toy methods
+        elif message.content.startswith(".Dominator "):
+            # TODO: use argparse for command options
+            target = " ".join(message.content.split(" ")[1:])
+            target_user = who_is(target, message)
+            if not target_user:
+                await message.channel.send(
+                    "Zero or multiple targets identified. Please select a single target."
+                )
+                return
+            await message.channel.send(self.sibyl.dominator_decision(target_user))
+        # AHEM
+        elif message.content.startswith(".DominatorSet"):
+            # cancel in case of pleb abuse
+            if not is_privileged(message.author, ADMINS):
+                return
+            target = " ".join(message.content.split(" ")[1:-1])
+            value = message.content.split(" ")[-1]
+            target_user = who_is(target, message)
+            self.sibyl.dominator_force(target_user, int(value))
+        elif message.content.startswith(".DominatorFire"):
+            await message.channel.send(self.sibyl.dominator_fire())
+        elif message.content == "!refresh":
+            self.easter_hen.refresh()
+        else:
+            react, response = base_response(
+                message.content.strip().lower(), hen=self.easter_hen
+            )
+            if response:
+                if react:
+                    for emote in response.split("/"):
+                        await message.add_reaction(emote)
+                else:
+                    await message.channel.send(response)
 
 
 def parse_args() -> argparse.Namespace:
@@ -27,20 +73,6 @@ def parse_args() -> argparse.Namespace:
         "an object with the fields 'token' and 'easter_hen_url'.",
     )
     return parser.parse_args()
-
-
-client = discord.Client()
-
-
-def dominator(target: str) -> str:
-    global SIBYL
-    # if target in SIBYL_CACHE:
-    # coefficient = SIBYL_CACHE.get(target)
-    # else:
-    # coefficient = calculate_coefficient(target)
-    # SIBYL_CACHE[target] = coefficient
-    response = SIBYL.dominator_decision(target)
-    return response
 
 
 # Top level function to handle the base case of messages
@@ -59,58 +91,12 @@ def base_response(message_text: str, hen: EasterHen) -> list:
     return False, ""
 
 
-@client.event
-async def on_ready() -> None:
-    print(f"We have logged in as {client.user}")
-
-
-@client.event
-async def on_message(message: discord.Message) -> None:
-    global EASTER_HEN
-    global SIBYL
-    if message.author == client.user:
-        return
-    # TODO: add other toy methods
-    elif message.content.startswith(".Dominator "):
-        # TODO: use argparse for command options
-        target = " ".join(message.content.split(" ")[1:])
-        target_user = who_is(target, message)
-        if not target_user:
-            await message.channel.send(
-                "Zero or multiple targets identified. Please select a single target."
-            )
-            return
-        await message.channel.send(SIBYL.dominator_decision(target_user))
-    # AHEM
-    elif message.content.startswith(".DominatorSet"):
-        # cancel in case of pleb abuse
-        if not is_privileged(message.author, ADMINS):
-            return
-        target = " ".join(message.content.split(" ")[1:-1])
-        value = message.content.split(" ")[-1]
-        target_user = who_is(target, message)
-        SIBYL.dominator_force(target_user, int(value))
-    elif message.content.startswith(".DominatorFire"):
-        await message.channel.send(SIBYL.dominator_fire())
-    elif message.content == "!refresh":
-        EASTER_HEN.refresh()
-    else:
-        react, response = base_response(message.content.strip().lower(), hen=EASTER_HEN)
-        if response:
-            if react:
-                for emote in response.split("/"):
-                    await message.add_reaction(emote)
-            else:
-                await message.channel.send(response)
-
-
 def main() -> None:
-    global EASTER_HEN
-    global SIBYL
     args = parse_args()
     config_data = get_config_from_json_file(args.config_json)
-    EASTER_HEN = EasterHen(config_data.get("easter_hen_url"))
-    SIBYL = SibylSystem()
+    client = SleepbotClient()
+    client.set_easter_hen(EasterHen(config_data.get("easter_hen_url")))
+    client.set_sibyl(SibylSystem())
     client.run(config_data.get("token"))
 
 
