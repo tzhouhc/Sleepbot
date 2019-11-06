@@ -12,6 +12,8 @@ def operate_on_strings(operator: str, sub_operand: str, operand: str) -> bool:
         return operand.endswith(sub_operand)
     elif operator == "contains":
         return sub_operand in operand
+    elif operator == "regex":
+        return re.search(fr"{sub_operand}", operand) is not None
     else:  # operator not recognized
         # TODO: do actual logging instead of stdout print
         print(f"operator '{operator}' not recognized.")
