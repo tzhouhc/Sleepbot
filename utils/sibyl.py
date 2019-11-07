@@ -3,16 +3,33 @@ import enum
 from cachetools import TTLCache
 
 
-# Represents the states that the dominator can be in
+SIBYL_RESPONSE_NOT_A_TARGET = (
+    "Not a target for enforcement action, the trigger will be locked."
+)
+SIBYL_RESPONSE_PARALYZE = (
+    "They're a target for enforcement action. Enforcement Mode"
+    " is Paralyzer. The safety will be released."
+)
+SIBYL_RESPONSE_ELIMINATE = (
+    "They're a target for enforcement action. Enforcement Mode"
+    " is Lethal Eliminator. Aim Carefully and Eliminate the Target."
+)
+
+
 class DominatorStatus(enum.Enum):
+    """Represents the states that the dominator can be in."""
+
     OFF = 0
     PARALYZER = 1
     ELIMINATOR = 2
 
 
-# Represents the sibyl-dominator judgement and execution system
-# contains a set of records on recent evaluations and weapon status
 class SibylSystem(object):
+    """
+        Represents the sibyl-dominator judgement and execution system
+        contains a set of records on recent evaluations and weapon status
+    """
+
     def __init__(self, record_size=64, record_ttl=100) -> None:
         self.records = TTLCache(record_size, ttl=record_ttl)
         self.last_target = None
@@ -28,7 +45,6 @@ class SibylSystem(object):
 
     @staticmethod
     def is_separate_jurisdiction(target: str) -> bool:
-        # can sibyl judge itself? Yes, yes she can.
         return target.strip().lower() in [
             "syraleaf!",
             "replay value",
@@ -77,27 +93,13 @@ class SibylSystem(object):
                 response += "Target is literally a fucking saint."
                 self.safety_status = DominatorStatus.OFF
             elif coefficient < 100:
-                response += (
-                    "Not a target for enforcement action, the trigger will be locked."
-                )
+                response += SIBYL_RESPONSE_NOT_A_TARGET
                 self.safety_status = DominatorStatus.OFF
             elif coefficient < 300:
-                response += (
-                    "They're a target for enforcement action. Enforcement Mode"
-                    " is Paralyzer. The safety will be released."
-                )
+                response += SIBYL_RESPONSE_PARALYZE
                 self.safety_status = DominatorStatus.PARALYZER
-            elif coefficient == 500:
-                response += (
-                    "They're a target for enforcement action. Enforcement Mode"
-                    " is Atomic Disassembler. Like, dude, how bad can you be?"
-                )
-                self.safety_status = DominatorStatus.ELIMINATOR
             else:
-                response += (
-                    "They're a target for enforcement action. Enforcement Mode"
-                    " is Lethal Eliminator. Aim Carefully and Eliminate the Target."
-                )
+                response += SIBYL_RESPONSE_ELIMINATE
                 self.safety_status = DominatorStatus.ELIMINATOR
         return response
 
