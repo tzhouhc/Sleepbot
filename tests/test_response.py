@@ -4,6 +4,9 @@ from ..utils import response
 
 
 class TestResponse(unittest.TestCase):
+    def setUp(self):
+        self.rm = response.ResponseManager()
+
     def test_operate_on_strings(self):
         inputs = [
             [["match", "12", "12"], True],
@@ -27,4 +30,4 @@ class TestResponse(unittest.TestCase):
         ]
         for args, answer in inputs:
             with self.subTest():
-                self.assertEqual(answer, response.operate_on_strings(*args))
+                self.assertEqual(answer, self.rm.should_operate_on_strings(*args))

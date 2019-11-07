@@ -1,7 +1,8 @@
-import random
 import enum
-from cachetools import TTLCache
+import random
+from typing import Optional
 
+from cachetools import TTLCache
 
 SIBYL_RESPONSE_NOT_A_TARGET = (
     "Not a target for enforcement action, the trigger will be locked."
@@ -32,7 +33,7 @@ class SibylSystem(object):
 
     def __init__(self, record_size=64, record_ttl=100) -> None:
         self.records = TTLCache(record_size, ttl=record_ttl)
-        self.last_target = None
+        self.last_target: Optional[str] = None
         self.safety_status = DominatorStatus.OFF
 
     def get_coefficient(self, target: str) -> int:
@@ -52,7 +53,7 @@ class SibylSystem(object):
         ]
 
     @staticmethod
-    def is_criminally_asymptotic(target: str) -> bool:
+    def is_criminally_asymptomatic(target: str) -> bool:
         return target.strip().lower() in [
             "tzhou",
             "syraleaf!",
@@ -68,7 +69,7 @@ class SibylSystem(object):
 
     @staticmethod
     def calculate_coefficient(target) -> int:
-        if SibylSystem.is_criminally_asymptotic(target):
+        if SibylSystem.is_criminally_asymptomatic(target):
             return 0
         elif SibylSystem.is_inherently_evil(target):
             return random.randint(301, 500)

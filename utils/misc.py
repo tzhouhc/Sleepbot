@@ -1,3 +1,5 @@
+import random
+
 import discord
 
 
@@ -21,3 +23,7 @@ def who_is(target: str, message: discord.Message) -> discord.User:
             if target.strip().lower() == member.display_name.lower():
                 return member.display_name
     return ""
+
+
+def random_emote(message: discord.Message) -> str:
+    return random.choice(message.guild.emojis)
