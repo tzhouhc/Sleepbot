@@ -27,6 +27,8 @@ class TestResponse(unittest.TestCase):
             [["regex", "1{2,}3", "1 132"], False],
             [["regex", "1{2,}3", "11132"], True],
             [["regex", "1{2,}3", "1132"], True],
+            [["regex", "\\bw[oau]t\\b", "wat"], True],
+            [["regex", "\\bw[oau]t\\b", "water"], False],
         ]
         for args, answer in inputs:
             with self.subTest():

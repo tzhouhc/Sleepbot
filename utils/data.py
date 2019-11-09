@@ -28,6 +28,7 @@ class EasterHen(object):
         self.refresh()
 
     def refresh(self) -> None:
+        self.eggs = []
         res = requests.get(url=self.source)
         reader = csv.reader(
             StringIO(res.content.decode("utf-8")), delimiter=",", quotechar='"'
