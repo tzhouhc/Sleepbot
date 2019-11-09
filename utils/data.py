@@ -1,7 +1,8 @@
 import csv
 import json
+import re
 from io import StringIO
-from typing import List
+from typing import Callable, List
 
 import requests
 
@@ -11,14 +12,41 @@ def get_config_from_json_file(fileio: StringIO):
 
 
 class EasterEgg(object):
+
     def __init__(self, easter_line):
-        keyword, operator, response, disabled, react, func_response = easter_line
+        keyword, operator, response, disabled, react = easter_line
         self.keyword = keyword.strip().lower()
-        self.operator = operator.strip().lower()
+        # compile_operator needs to be after self.keyword initialization
+        self.operator = self.compile_operator(operator.strip().lower())
         self.response = response
         self.disabled = disabled.strip().lower() == "true"
         self.react = react.strip().lower() == "true"
-        self.func_response = func_response.strip().lower() == "true"
+
+    def compile_operator(self, operator: str) -> Callable[[str], bool]:
+        """
+            Converts an operator string to a function that can be latter called
+            to check whether they trigger the egg.
+        """
+        if operator == "match":
+            return lambda x: self.keyword == x
+        elif operator == "contains_word":
+            pattern = re.compile(fr"\b{self.keyword}\b")
+            return lambda x: pattern.search(x) is not None
+        elif operator == "prefix":
+            return lambda x: x.startswith(self.keyword)
+        elif operator == "suffix":
+            return lambda x: x.endswith(self.keyword)
+        elif operator == "contains":
+            return lambda x: self.keyword in x
+        elif operator == "regex":
+            pattern = re.compile(fr"{self.keyword}")
+            return lambda x: pattern.search(x) is not None
+        else:
+            print(f"operator '{operator}' not recognized.")
+            return lambda x: False
+
+    def trigger_on_str(self, input: str) -> bool:
+        return self.operator(input)
 
 
 class EasterHen(object):

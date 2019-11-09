@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+from typing import Optional
 
 import discord
 
@@ -8,8 +9,6 @@ from utils.data import EasterHen, get_config_from_json_file
 from utils.misc import random_emote, who_is
 from utils.response import ResponseManager
 from utils.sibyl import SibylSystem
-
-from typing import Optional
 
 
 class SleepbotClient(discord.Client):
@@ -77,7 +76,8 @@ class SleepbotClient(discord.Client):
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Start the sleep monitor bot.")
+    parser = argparse.ArgumentParser(
+        description="Start the sleep monitor bot.")
     parser.add_argument(
         "-c",
         "--config-json",
