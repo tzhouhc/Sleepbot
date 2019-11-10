@@ -9,6 +9,8 @@ from typing import Callable, List, Optional, Dict
 
 import requests
 
+DEFAULT_DELAY = 0
+
 
 def get_config_from_json_file(fileio: StringIO) -> Dict:
     """Obtain Sleepbot configs from json.
@@ -47,7 +49,7 @@ class EasterEgg(object):
         self.response = response
         self.disabled = disabled.strip().lower() == "true"
         self.react = react.strip().lower() == "true"
-        self.delay = int(delay) if delay else 0
+        self.delay = int(delay) if delay else DEFAULT_DELAY
         self.last_triggered: Optional[datetime] = None
 
     def compile_operator(self, operator: str) -> Callable[[str], bool]:

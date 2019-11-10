@@ -1,13 +1,19 @@
+"""Miscellaneous functions."""
 import random
 
 import discord
 
 
-def who_is(target: str, message: discord.Message) -> discord.User:
-    """
-        Identities if and who is being mentioned in the message, using explicit
-        target string if no mentions were used.
-        Returns empty string if none or multiple found.
+def who_is(target: str, message: discord.Message) -> str:
+    """Identity who is being mentioned in the message.
+
+    Arguments:
+        target {str} -- Target name input.
+        message {discord.Message} -- Original message, as context.
+
+    Returns:
+        Name of the user, or empty string if none found.
+
     """
     # The reason for separating target and message, even though target can be
     # obtained from message, is that different commands might have different ways
@@ -26,4 +32,5 @@ def who_is(target: str, message: discord.Message) -> discord.User:
 
 
 def random_emote(message: discord.Message) -> str:
+    """Return random emote from the server that the message was in."""
     return random.choice(message.guild.emojis)

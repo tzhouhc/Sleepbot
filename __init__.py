@@ -1,1 +1,1 @@
-"""Utilities for the Sleepbot."""
+"""Sleepbot."""

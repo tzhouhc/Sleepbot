@@ -1,3 +1,4 @@
+"""The bot that was originally intended to tell people to sleep but not anymore."""
 #!/usr/bin/env python3
 import argparse
 from typing import Optional
@@ -12,21 +13,40 @@ from utils.sibyl import SibylSystem
 
 
 class SleepbotClient(discord.Client):
+    """The Bot."""
+
     def __init__(self) -> None:
+        """Create an empty bot without internals."""
         super().__init__()
         self.sibyl: Optional[SibylSystem] = None
         self.response_manager: Optional[ResponseManager] = None
 
     def set_response_manager(self, rm: ResponseManager) -> None:
+        """Set the response manager for the bot.
+
+        Arguments:
+            rm {ResponseManager} -- The response manager to use.
+        """
         self.response_manager = rm
 
     def set_sibyl(self, sibyl: SibylSystem) -> None:
+        """Set the sibyl system for the bot.
+
+        Arguments:
+            sibyl {SibylSystem} -- The sibyl system object to use.
+        """
         self.sibyl = sibyl
 
     async def on_ready(self) -> None:
+        """Log the bot's ready status."""
         print(f"We have logged in as {self.user}")
 
     async def on_message(self, message: discord.Message) -> None:
+        """Perform task or provide response based on incoming message.
+
+        Arguments:
+            message {discord.Message} -- Incoming message.
+        """
         assert self.sibyl is not None
         assert self.response_manager is not None
         # skip own messages
@@ -64,7 +84,7 @@ class SleepbotClient(discord.Client):
         elif message.content == "!refresh":
             self.response_manager.refresh()
         else:
-            egg = self.response_manager.get_triggered_eggs(
+            egg = self.response_manager.get_triggered_egg(
                 message.content.strip().lower()
             )
             if egg:
@@ -76,7 +96,9 @@ class SleepbotClient(discord.Client):
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Start the sleep monitor bot.")
+    """Parse arguments to the CLI interface."""
+    parser = argparse.ArgumentParser(
+        description="Start the sleep monitor bot.")
     parser.add_argument(
         "-c",
         "--config-json",
@@ -88,6 +110,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    """Start the bot and setup its internals."""
     args = parse_args()
     config_data = get_config_from_json_file(args.config_json)
     client = SleepbotClient()

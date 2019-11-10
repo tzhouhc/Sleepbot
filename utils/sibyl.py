@@ -1,3 +1,4 @@
+"""Module for the dominator system."""
 import enum
 import random
 from typing import Optional
@@ -27,16 +28,33 @@ class DominatorStatus(enum.Enum):
 
 class SibylSystem(object):
     """
-        Represents the sibyl-dominator judgement and execution system
-        contains a set of records on recent evaluations and weapon status
+    Represents the sibyl-dominator judgement and execution system.
+
+    Contains a set of records on recent evaluations and weapon status
     """
 
     def __init__(self, record_size=64, record_ttl=100) -> None:
+        """Create a SibylSystem object.
+
+        Keyword Arguments:
+            record_size {int} -- The number of records to cache. (default: {64})
+            record_ttl {int} -- The time-to-live for records, in seconds
+                (default: {100})
+        """
         self.records = TTLCache(record_size, ttl=record_ttl)
         self.last_target: Optional[str] = None
         self.safety_status = DominatorStatus.OFF
 
     def get_coefficient(self, target: str) -> int:
+        """Get coefficient of target, potentially from cache.
+
+        Arguments:
+            target {str} -- Name of the target.
+
+        Returns:
+            int -- target's crime coefficient.
+
+        """
         if target in self.records:
             coefficient = self.records.get(target)
         else:
@@ -46,6 +64,7 @@ class SibylSystem(object):
 
     @staticmethod
     def is_separate_jurisdiction(target: str) -> bool:
+        """Whether target is not judgeable."""
         return target.strip().lower() in [
             "syraleaf!",
             "replay value",
@@ -54,6 +73,7 @@ class SibylSystem(object):
 
     @staticmethod
     def is_criminally_asymptomatic(target: str) -> bool:
+        """Whether target is always innocent."""
         return target.strip().lower() in [
             "tzhou",
             "syraleaf!",
@@ -65,10 +85,20 @@ class SibylSystem(object):
 
     @staticmethod
     def is_inherently_evil(target: str) -> bool:
+        """Whether target is always guilty."""
         return target.strip().lower() in ["amadeus"]
 
     @staticmethod
-    def calculate_coefficient(target) -> int:
+    def calculate_coefficient(target: str) -> int:
+        """Calculate the crime coefficient of the target.
+
+        Arguments:
+            target {str} -- Target name.
+
+        Returns:
+            int -- crime coefficient.
+
+        """
         if SibylSystem.is_criminally_asymptomatic(target):
             return 0
         elif SibylSystem.is_inherently_evil(target):
@@ -80,8 +110,16 @@ class SibylSystem(object):
             else:
                 return random.randint(101, 500)
 
-    # returns a number for lethality, and a string for announcement
     def dominator_decision(self, target: str) -> str:
+        """Determine message for target judgement.
+
+        Arguments:
+            target {str} -- Target name.
+
+        Returns:
+            str -- The decision message from Sibyl.
+
+        """
         coefficient = self.get_coefficient(target)
         self.last_target = target
         response = None
@@ -106,6 +144,12 @@ class SibylSystem(object):
 
     # BOOOOM
     def dominator_fire(self) -> str:
+        """Determine message when firing upon the last scanned target.
+
+        Returns:
+            str -- The firing message.
+
+        """
         response = None
         if not self.last_target or self.safety_status == DominatorStatus.OFF:
             response = "Dominator is locked."
@@ -123,5 +167,11 @@ class SibylSystem(object):
         self.safety_status = DominatorStatus.OFF
         return response
 
-    def dominator_force(self, target, value) -> None:
+    def dominator_force(self, target: str, value: int) -> None:
+        """Set the criminal coefficient of a target by force.
+
+        Arguments:
+            target {str} -- Target name.
+            value {int} -- Desired criminal coefficient.
+        """
         self.records[target] = value
