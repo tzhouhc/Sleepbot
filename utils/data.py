@@ -12,9 +12,9 @@ def get_config_from_json_file(fileio: StringIO):
 
 
 class EasterEgg(object):
-
-    def __init__(self, easter_line):
-        keyword, operator, response, disabled, react = easter_line
+    def __init__(
+        self, keyword: str, operator: str, response: str, disabled="", react=""
+    ):
         self.keyword = keyword.strip().lower()
         # compile_operator needs to be after self.keyword initialization
         self.operator = self.compile_operator(operator.strip().lower())
@@ -62,7 +62,8 @@ class EasterHen(object):
             StringIO(res.content.decode("utf-8")), delimiter=",", quotechar='"'
         )
         next(reader)  # skip header
-        for egg in map(EasterEgg, reader):
+        for line in reader:
+            egg = EasterEgg(*line)
             self.eggs += [] if (egg.disabled or not egg.response) else [egg]
 
     def get_eggs(self) -> List[EasterEgg]:

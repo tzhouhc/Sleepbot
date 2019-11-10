@@ -3,3 +3,4 @@ __pycache__
 config.json
 .mypy_cache
 .pytest_cache
+.vscode

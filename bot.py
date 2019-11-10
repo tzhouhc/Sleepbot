@@ -76,8 +76,7 @@ class SleepbotClient(discord.Client):
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Start the sleep monitor bot.")
+    parser = argparse.ArgumentParser(description="Start the sleep monitor bot.")
     parser.add_argument(
         "-c",
         "--config-json",
