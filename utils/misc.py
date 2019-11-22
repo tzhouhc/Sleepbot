@@ -2,6 +2,7 @@
 import random
 
 import discord
+import xkcd
 
 
 def who_is(target: str, message: discord.Message) -> str:
@@ -34,3 +35,9 @@ def who_is(target: str, message: discord.Message) -> str:
 def random_emote(message: discord.Message) -> str:
     """Return random emote from the server that the message was in."""
     return random.choice(message.guild.emojis)
+
+
+def random_xkcd() -> str:
+    """Return a random xkcd url."""
+    latest = xkcd.getLatestComicNum()
+    return f"https://xkcd.com/{random.randint(1, latest)}/"

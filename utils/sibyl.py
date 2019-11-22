@@ -127,7 +127,7 @@ class SibylSystem(object):
             self.safety_status = DominatorStatus.OFF
             response = f"Target '{target}' is not under current jurisdiction."
         else:
-            response = f"Target '{target}' has a crime coefficent of {coefficient}. "
+            response = f"Target '{target}' has a crime coefficient of {coefficient}. "
             if coefficient == 0:
                 response += "Target is literally a fucking saint."
                 self.safety_status = DominatorStatus.OFF
@@ -154,15 +154,13 @@ class SibylSystem(object):
         if not self.last_target or self.safety_status == DominatorStatus.OFF:
             response = "Dominator is locked."
         elif self.safety_status == DominatorStatus.PARALYZER:
+            response = f"{self.last_target}: https://gfycat.com/scarcejoyousfinwhale"
             del self.records[self.last_target]
-            response = (
-                f"\\> {self.last_target} <: https://gfycat.com/scarcejoyousfinwhale"
-            )
         else:
-            del self.records[self.last_target]
             response = (
-                f"\\> {self.last_target}< : https://gfycat.com/regulartarthorseshoecrab"
+                f"{self.last_target}: https://gfycat.com/regulartarthorseshoecrab"
             )
+            del self.records[self.last_target]
         self.last_target = None
         self.safety_status = DominatorStatus.OFF
         return response

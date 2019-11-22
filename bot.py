@@ -7,7 +7,7 @@ import discord
 
 from utils.admin import ADMINS, is_privileged
 from utils.data import EasterHen, get_config_from_json_file
-from utils.misc import random_emote, who_is
+from utils.misc import random_emote, who_is, random_xkcd
 from utils.response import ResponseManager
 from utils.sibyl import SibylSystem
 
@@ -79,6 +79,10 @@ class SleepbotClient(discord.Client):
             self.sibyl.dominator_force(target_user, int(value))
         elif message.content.startswith(".DominatorFire"):
             await message.channel.send(self.sibyl.dominator_fire())
+
+        # xkcd
+        elif message.content.strip().lower() == ".xkcd":
+            await message.channel.send(random_xkcd())
 
         # generic easter egg response system
         elif message.content == "!refresh":
