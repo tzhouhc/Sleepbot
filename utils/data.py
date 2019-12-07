@@ -12,7 +12,7 @@ import requests
 DEFAULT_DELAY = 0
 
 
-def get_config_from_json_file(fileio: StringIO) -> Dict:
+def get_config_from_json_file(fileio: StringIO) -> Dict[str, str]:
     """Obtain Sleepbot configs from json.
 
     Arguments:
@@ -29,7 +29,13 @@ class EasterEgg(object):
     """Class for easter eggs."""
 
     def __init__(
-        self, keyword: str, operator: str, response: str, disabled="", react="", delay=""
+        self,
+        keyword: str,
+        operator: str,
+        response: str,
+        disabled="",
+        react="",
+        delay="",
     ) -> None:
         """Create an easter egg.
 
@@ -77,7 +83,10 @@ class EasterEgg(object):
 
     def is_in_timeout(self) -> bool:
         """Whether the egg is in 'cooldown' and cannot be triggered for now."""
-        return self.last_triggered and (datetime.now() - self.last_triggered).seconds < self.delay
+        return (
+            self.last_triggered is not None
+            and (datetime.now() - self.last_triggered).seconds < self.delay
+        )
 
     def trigger_on_str(self, input: str) -> bool:
         """Whether the egg should trigger on the input.

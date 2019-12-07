@@ -3,6 +3,25 @@ import random
 
 import discord
 import xkcd
+from typing import List
+
+ROCK = "✊"
+PAPER = "🖐️"
+SCISSORS = "✌️"
+LIZARD = "🤏"
+SPOCK = "🖖"
+
+
+def rock_paper_scissors() -> str:
+    return random.choice([ROCK, PAPER, SCISSORS])
+
+
+def rock_paper_scissors_lizard_spock() -> str:
+    return random.choice([ROCK, PAPER, SCISSORS, LIZARD, SPOCK])
+
+
+def rock_paper_scissors_lizard_spock_rules() -> str:
+    return "https://shorturl.at/goAOS"
 
 
 def who_is(target: str, message: discord.Message) -> str:
@@ -41,3 +60,24 @@ def random_xkcd() -> str:
     """Return a random xkcd url."""
     latest = xkcd.getLatestComicNum()
     return f"https://xkcd.com/{random.randint(1, latest)}/"
+
+
+def poll(message: discord.Message) -> List[str]:
+    """React to the message with multiple choices."""
+    try:
+        choices = int(message.content.split(" ")[1])
+    except ValueError:
+        choices = 4
+    reactions: List[str] = []
+    for i in range(0, choices):
+        reactions += [str(chr(127462 + i))]
+    return reactions
+
+
+def strip_quotes(input_str: str) -> str:
+    """Remove quotes from string."""
+    if input_str.startswith('"') and input_str.endswith('"'):
+        input_str = input_str[1:-1]
+    if input_str.startswith("'") and input_str.endswith("'"):
+        input_str = input_str[1:-1]
+    return input_str
