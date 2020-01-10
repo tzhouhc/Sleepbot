@@ -3,7 +3,12 @@ import random
 
 import discord
 import xkcd
+import PIL
+import colorgram
+import requests
 from typing import List
+from io import BytesIO
+from PIL import ImageDraw
 
 ROCK = "✊"
 PAPER = "🖐️"
@@ -81,3 +86,28 @@ def strip_quotes(input_str: str) -> str:
     if input_str.startswith("'") and input_str.endswith("'"):
         input_str = input_str[1:-1]
     return input_str
+
+
+def generate_palette(message: discord.Message) -> PIL.Image:
+    print("processing for palette")
+    if message.attachments:
+        img_data = requests.get(message.attachments[0].url)
+        print("obtained image data")
+        image = PIL.Image.open(BytesIO(img_data.content))
+        palette = colorgram.extract(image, 7)
+        print("obtained image palette")
+        palette_image = palette_to_image(palette)
+        return palette_image
+
+
+def palette_to_image(palette: List[colorgram.Color]) -> PIL.Image:
+    b_width = 60
+    b_height = 80
+    img = PIL.Image.new("RGB", (b_width * len(palette), b_height))
+    d = ImageDraw.Draw(img)
+    for i in range(0, len(palette)):
+        color = palette[i]
+        d.rectangle(
+            [(b_width * i, 0), (b_width * (i + 1) - 1, b_height - 1)], fill=color.rgb
+        )
+    return img

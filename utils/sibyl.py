@@ -67,7 +67,7 @@ class SibylSystem(object):
         """Whether target is not judgeable."""
         return target.strip().lower() in [
             "syraleaf!",
-            "replay value",
+            "replay",
             "tzhou",
         ]
 

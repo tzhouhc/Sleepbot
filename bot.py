@@ -4,6 +4,7 @@
 import argparse
 import asyncio
 import re
+import tempfile
 from typing import Optional
 
 import discord
@@ -19,6 +20,7 @@ from utils.misc import (
     rock_paper_scissors_lizard_spock,
     rock_paper_scissors_lizard_spock_rules,
     strip_quotes,
+    generate_palette,
 )
 from utils.response import ResponseManager
 from utils.sibyl import SibylSystem
@@ -115,6 +117,17 @@ class SleepbotClient(discord.Client):
             responses = poll(message)
             for emote in responses:
                 await message.add_reaction(emote)
+
+        # palette
+        elif message.content.strip().lower() == ".palette":
+            print("Palette request")
+            palette_image = generate_palette(message)
+            if palette_image:
+                with tempfile.NamedTemporaryFile(suffix=".png") as tf:
+                    palette_image.save(tf.name)
+                    await message.channel.send(
+                        "Here you go.", file=discord.File(tf.name)
+                    )
 
         # xkcd
         elif message.content.strip().lower() == ".xkcd":
